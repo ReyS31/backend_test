@@ -1,5 +1,4 @@
 import type Register from '../Register';
-
 describe('Register type test', () => {
 	it('return register correctly', () => {
 		const payload = {

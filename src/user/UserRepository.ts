@@ -1,6 +1,12 @@
-import {type Pool, type RowDataPacket} from 'mysql2/promise';
+import {
+	type ResultSetHeader,
+	type Pool,
+	type RowDataPacket,
+} from 'mysql2/promise';
 import InvariantError from '../error/InvariantError';
-import {type User} from './User';
+import User, {type UserT} from './User';
+import type Register from '../register/Register';
+import NotFoundError from '../error/NotFoundError';
 
 export default class UserRepository {
 	constructor(private readonly pool: Pool) {}
@@ -11,7 +17,7 @@ export default class UserRepository {
 			[username],
 		);
 
-		if (rows) {
+		if ((rows as unknown[]).length) {
 			throw new InvariantError('username not available');
 		}
 	}
@@ -23,6 +29,50 @@ export default class UserRepository {
 
 		rows = rows as RowDataPacket[];
 
-		return rows[0] as User;
+		if (!rows.length) {
+			throw new NotFoundError('user not found');
+		}
+
+		return new User(rows[0] as UserT);
+	}
+
+	public async createUser(data: Register): Promise<number> {
+		try {
+			let [rows] = await this.pool.query(
+				`
+				INSERT INTO users
+				(first_name, last_name, date_of_birth, street_address, city, province, telephone, email, username, password, registered_at)
+				VALUES
+				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			`,
+				[
+					data.firstName,
+					data.lastName,
+					data.dateOfBirth,
+					data.streetAddress,
+					data.city,
+					data.province,
+					data.telephone,
+					data.email,
+					data.username,
+					data.password,
+					new Date().toUTCString(),
+				],
+			);
+			console.log(rows);
+			rows = rows as ResultSetHeader;
+
+			if (!rows.insertId) {
+				throw new InvariantError('cant register user');
+			}
+
+			return rows.insertId;
+		} catch (error) {
+			if (error instanceof Error && error.message.includes('username')) {
+				throw new InvariantError('username is not available');
+			}
+
+			throw error;
+		}
 	}
 }

@@ -52,7 +52,6 @@ class RegisterController {
 		app.post('/register', (req: Request, res: Response, next: NextFunction) => {
 			this.register(req, res, next);
 		});
-
 		return app;
 	}
 
