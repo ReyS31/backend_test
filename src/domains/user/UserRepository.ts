@@ -4,9 +4,10 @@ import {
 	type RowDataPacket,
 } from 'mysql2/promise';
 import User, {type UserT} from './User';
-import type Register from '../register/Register';
 import InvariantError from '../../error/InvariantError';
 import NotFoundError from '../../error/NotFoundError';
+import AuthenticationError from '../../error/AuthenticationError';
+import {type Register} from '../../services/auth/AuthTypes';
 
 export default class UserRepository {
 	constructor(private readonly pool: Pool) {}
@@ -36,9 +37,9 @@ export default class UserRepository {
 		return new User(rows[0] as UserT);
 	}
 
-	public async createUser(data: Register): Promise<number> {
+	public async createUser(data: Register, date: string): Promise<number> {
 		try {
-			let [rows] = await this.pool.query(
+			let [row] = await this.pool.query(
 				`
 				INSERT INTO users
 				(first_name, last_name, date_of_birth, street_address, city, province, telephone, email, username, password, registered_at)
@@ -56,17 +57,16 @@ export default class UserRepository {
 					data.email,
 					data.username,
 					data.password,
-					new Date().toUTCString(),
+					date,
 				],
 			);
-			console.log(rows);
-			rows = rows as ResultSetHeader;
+			row = row as ResultSetHeader;
 
-			if (!rows.insertId) {
+			if (!row.insertId) {
 				throw new InvariantError('cant register user');
 			}
 
-			return rows.insertId;
+			return row.insertId;
 		} catch (error) {
 			if (error instanceof Error && error.message.includes('username')) {
 				throw new InvariantError('username is not available');
@@ -74,5 +74,20 @@ export default class UserRepository {
 
 			throw error;
 		}
+	}
+
+	public async getPassword(creds: string): Promise<Record<string, unknown>> {
+		let [rows] = await this.pool.query(
+			'SELECT id, password FROM users where username = ? OR email = ?',
+			[creds, creds],
+		);
+
+		rows = rows as RowDataPacket[];
+
+		if (!rows.length) {
+			throw new AuthenticationError('invalid credentials');
+		}
+
+		return rows[0] as Record<string, unknown>;
 	}
 }

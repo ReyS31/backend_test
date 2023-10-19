@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 import express from 'express';
 

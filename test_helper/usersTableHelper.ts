@@ -1,8 +1,8 @@
 /* istanbul ignore next */
 import {type RowDataPacket} from 'mysql2';
 import pool from '../src/pool';
-import type Register from '../src/register/Register';
-import User from '../src/user/User';
+import User from '../src/domains/user/User';
+import {type Register} from '../src/services/auth/AuthTypes';
 
 export async function createUser(
 	user: Register = {

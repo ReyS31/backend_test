@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/src/app.js",
     "dev": "nodemon src/app.ts",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "migrate:up": "node migration up-all",
+    "migrate:down": "node migration down-all"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
     "mysql2": "^3.6.2",
     "validator": "^13.11.0",
     "zod": "^3.22.4"

@@ -19,7 +19,7 @@ export default class TokenManager {
 		try {
 			this._jwt.verify(token, process.env.REFRESH_TOKEN_KEY);
 		} catch (error) {
-			throw new InvariantError('refresh token tidak valid');
+			throw new InvariantError('invalid refresh token');
 		}
 	}
 

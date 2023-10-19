@@ -23,7 +23,7 @@ export default class PasswordHash {
 		)) as boolean;
 
 		if (!result) {
-			throw new AuthenticationError('kredensial yang Anda masukkan salah');
+			throw new AuthenticationError('invalid credentials');
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import type Register from '../Register';
+import {type Register} from '../AuthTypes';
 describe('Register type test', () => {
 	it('return register correctly', () => {
 		const payload = {

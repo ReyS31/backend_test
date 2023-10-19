@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS `migrator` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `filename` VARCHAR(50) NOT NULL,
+    `migrated_at` TIMESTAMP NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB;

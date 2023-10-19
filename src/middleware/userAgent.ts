@@ -6,6 +6,5 @@ export default function getUserAgent(
 	next: NextFunction,
 ) {
 	request.userAgent = request.headers['user-agent'];
-	console.log(request.userAgent);
 	next();
 }
