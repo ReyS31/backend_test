@@ -3,10 +3,10 @@ import {
 	type Pool,
 	type RowDataPacket,
 } from 'mysql2/promise';
-import InvariantError from '../error/InvariantError';
 import User, {type UserT} from './User';
 import type Register from '../register/Register';
-import NotFoundError from '../error/NotFoundError';
+import InvariantError from '../../error/InvariantError';
+import NotFoundError from '../../error/NotFoundError';
 
 export default class UserRepository {
 	constructor(private readonly pool: Pool) {}

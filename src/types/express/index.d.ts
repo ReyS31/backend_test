@@ -5,6 +5,7 @@ declare global {
 	namespace Express {
 		interface Request {
 			userAgent?: string;
+			auth?: Record<string, unknown>;
 		}
 	}
 }

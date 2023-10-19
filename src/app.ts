@@ -5,7 +5,7 @@ import express, {
 	type Response,
 } from 'express';
 import dotenv from 'dotenv';
-import { ZodError } from 'zod';
+import {ZodError} from 'zod';
 import ClientError from './error/ClientError';
 import getUserAgent from './middleware/userAgent';
 

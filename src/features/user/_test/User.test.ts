@@ -4,6 +4,7 @@ import User, {type UserT} from '../User';
 describe('User', () => {
 	it('create User successfully', () => {
 		const payload: UserT = {
+			id: 1,
 			first_name: 'test',
 			last_name: 'test',
 			city: 'test',

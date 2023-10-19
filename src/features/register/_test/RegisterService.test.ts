@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import * as userTableHelpers from '../../../test_helper/usersTableHelper';
-import pool from '../../pool';
-import PasswordHash from '../../security/PasswordHash';
-import TokenManager from '../../security/TokenManager';
+import * as userTableHelpers from '../../../../test_helper/usersTableHelper';
+import pool from '../../../pool';
+import PasswordHash from '../../../security/PasswordHash';
+import TokenManager from '../../../security/TokenManager';
 import User from '../../user/User';
 import UserRepository from '../../user/UserRepository';
 import type Register from '../Register';

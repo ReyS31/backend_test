@@ -1,5 +1,6 @@
-import type PasswordHash from '../security/PasswordHash';
-import type TokenManager from '../security/TokenManager';
+
+import PasswordHash from '../../security/PasswordHash';
+import TokenManager from '../../security/TokenManager';
 import type User from '../user/User';
 import type UserRepository from '../user/UserRepository';
 import type Register from './Register';

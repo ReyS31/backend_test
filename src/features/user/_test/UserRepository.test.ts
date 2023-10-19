@@ -1,9 +1,9 @@
-import pool from '../../pool';
+import * as UserTableHelpers from '../../../../test_helper/usersTableHelper';
 import UserRepository from '../UserRepository';
-import * as UserTableHelpers from '../../../test_helper/usersTableHelper';
-import InvariantError from '../../error/InvariantError';
-import NotFoundError from '../../error/NotFoundError';
 import User from '../User';
+import InvariantError from '../../../error/InvariantError';
+import NotFoundError from '../../../error/NotFoundError';
+import pool from '../../../pool';
 
 describe('UserRepository', () => {
 	let userRepository: UserRepository;
