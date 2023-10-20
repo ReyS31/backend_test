@@ -4,23 +4,26 @@ import {
 	type RowDataPacket,
 } from 'mysql2/promise';
 import InvariantError from '../../error/InvariantError';
-import {type CreateWallet} from '../../services/wallet/WalletTypes';
+import {
+	WalletIdBalance,
+	type CreateWallet,
+} from '../../services/wallet/WalletTypes';
 
 export default class WalletRepository {
 	constructor(private readonly pool: Pool) {}
 
-	public async getBalance(userId: number): Promise<number> {
+	public async getBalance(userId: number): Promise<WalletIdBalance> {
 		let [rows] = await this.pool.query(
-			'SELECT balance FROM `wallets` WHERE `user_id` = ?',
+			'SELECT id, balance, pin FROM `wallets` WHERE `user_id` = ?',
 			[userId],
 		);
 		rows = rows as RowDataPacket[];
 
-		if (rows.length) {
+		if (!rows.length) {
 			throw new InvariantError('user has no wallet');
 		}
 
-		return rows[0].balance as number;
+		return new WalletIdBalance(rows[0]);
 	}
 
 	public async createWallet(data: CreateWallet): Promise<string> {
@@ -51,6 +54,19 @@ export default class WalletRepository {
 		let [res] = await this.pool.query(
 			'UPDATE wallets SET balance = ? WHERE id = ?',
 			[newBalance, walletId],
+		);
+
+		res = res as ResultSetHeader;
+
+		if (!res.affectedRows) {
+			throw new InvariantError('fails to update wallet');
+		}
+	}
+
+	public async updatePin(id: string, newPin: string): Promise<void> {
+		let [res] = await this.pool.query(
+			'UPDATE wallets SET pin = ? WHERE id = ?',
+			[newPin, id],
 		);
 
 		res = res as ResultSetHeader;

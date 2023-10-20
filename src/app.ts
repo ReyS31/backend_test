@@ -17,6 +17,8 @@ import TokenManager from './security/TokenManager';
 // Repository
 import UserRepository from './domains/user/UserRepository';
 import AuthRepository from './domains/auth/AuthRepository';
+import WalletRepository from './domains/wallet/WalletRepository';
+import TransactionRepository from './domains/transaction/TransactionRepository';
 
 // Middleware
 import getUserAgent from './middleware/userAgent';
@@ -25,9 +27,11 @@ import errorHandler from './middleware/errorHandler';
 
 // Service
 import AuthService from './services/auth/AuthService';
+import WalletService from './services/wallet/WalletService';
 
 // Controller
 import AuthController from './services/auth/AuthController';
+import WalletController from './services/wallet/WalletController';
 
 dotenv.config();
 
@@ -39,6 +43,8 @@ export async function createServer(): Promise<Express> {
 	// Repository
 	const userRepository = new UserRepository(pool);
 	const authRepository = new AuthRepository(pool);
+	const walletRepository = new WalletRepository(pool);
+	const transactionRepository = new TransactionRepository(pool);
 
 	// Services
 	const authService = new AuthService(
@@ -47,12 +53,18 @@ export async function createServer(): Promise<Express> {
 		userRepository,
 		authRepository,
 	);
+	const walletService = new WalletService(
+		walletRepository,
+		transactionRepository,
+		passwordHash,
+	);
 
 	// Middleware
 	const authMiddleware = auth(tokenManager, authRepository);
 
 	// Controller
-	const authController = new AuthController(authService);
+	const authController = new AuthController(authService, walletService);
+	const walletController = new WalletController(walletService);
 
 	// Express
 	const app: Express = express();
@@ -62,7 +74,6 @@ export async function createServer(): Promise<Express> {
 	app.use(getUserAgent);
 
 	// App
-
 	/* #region Auth */
 	app.post(
 		'/auth/register',
@@ -76,8 +87,30 @@ export async function createServer(): Promise<Express> {
 	);
 	/* #endregion */
 
+	/* #region Wallet */
+	app.use('/wallet', authMiddleware);
+	app.get('/wallet', async (req: Request, res: Response, next: NextFunction) =>
+		walletController.checkBalance(req, res, next),
+	);
+	app.post(
+		'/wallet/topup',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.topup(req, res, next),
+	);
+	app.post(
+		'/wallet/pay',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.pay(req, res, next),
+	);
+	app.post(
+		'/wallet/change-pin',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.changePin(req, res, next),
+	);
+	/* #endregion */
+
 	// HealthCheck
-	app.get('/', [authMiddleware], async (req: Request, res: Response) => {
+	app.get('/', async (req: Request, res: Response) => {
 		res.send({
 			status: 'success',
 			message: 'OK',

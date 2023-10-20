@@ -1,12 +1,13 @@
 import {type NextFunction, type Request, type Response} from 'express';
 import type AuthService from './AuthService';
-import {
-	verifyRegisterPayload,
-	verifyLoginPayload,
-} from './AuthTypes';
+import {verifyRegisterPayload, verifyLoginPayload} from './AuthTypes';
+import type WalletService from '../wallet/WalletService';
 
 class AuthController {
-	constructor(private readonly registerService: AuthService) {}
+	constructor(
+		private readonly registerService: AuthService,
+		private readonly walletService: WalletService,
+	) {}
 
 	public async register(
 		request: Request,
@@ -20,6 +21,7 @@ class AuthController {
 				payload,
 				request.userAgent ?? 'unknown browser',
 			);
+			await this.walletService.createWallet(data.user);
 
 			return response.status(201).send({
 				status: 'success',
