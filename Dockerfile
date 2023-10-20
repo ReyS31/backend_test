@@ -50,6 +50,19 @@ FROM base as final
 
 # Use production node environment by default.
 ENV NODE_ENV production
+ENV PORT 8000
+
+# Database
+ENV DB_HOST 'localhost'
+ENV DB_USER 'root'
+ENV DB_NAME 'starworks'
+ENV DB_PASSWORD 'password'
+
+# Tokenizer
+ENV ACCESS_TOKEN_KEY ''
+ENV REFRESH_TOKEN_KEY ''
+ENV ACCCESS_TOKEN_AGE 259200000
+
 
 # Run the application as a non-root user.
 USER node
@@ -61,10 +74,10 @@ COPY package.json .
 # the built application from the build stage into the image.
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
-
+COPY --from=build /usr/src/app/migration ./migration
 
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE ${PORT}
 
 # Run the application.
 CMD npm start
