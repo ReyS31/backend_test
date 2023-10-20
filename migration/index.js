@@ -43,8 +43,7 @@ process.argv.forEach(async (val, index) => {
 	}
 
 	if (index === 2) {
-		const promises = [];
-		let i = 0;
+		const promises = [pool.query('SET FOREIGN_KEY_CHECKS=0;')];
 		if (val === 'up' || val === 'up-all') {
 			const baseDir = `${__dirname}/up`;
 			const dir = readdirSync(baseDir);
@@ -69,9 +68,15 @@ process.argv.forEach(async (val, index) => {
 				}
 
 				const sql = readFileSync(`${baseDir}/${currentFile}`).toString();
-				promises.push(pool.query(sql));
 				promises.push(
-					pool.query('INSERT INTO migrator(filename) VALUES(?)', [currentFile]),
+					pool
+						.query(sql)
+						.then(
+							pool.query('INSERT INTO migrator(id, filename) VALUES(?, ?)', [
+								currentNumber,
+								currentFile,
+							]),
+						),
 				);
 				console.log(`${currentFile} MIGRATED`);
 				if (val === 'up') {
@@ -103,10 +108,14 @@ process.argv.forEach(async (val, index) => {
 				}
 
 				const sql = readFileSync(`${baseDir}/${currentFile}`).toString();
-				promises.push(pool.query(sql));
 				promises.push(
-					pool.query('DELETE FROM migrator WHERE filename = ?', [currentFile]),
+					pool
+						.query(sql)
+						.then(
+							pool.query('DELETE FROM migrator WHERE filename = ?', [currentFile]),
+						),
 				);
+
 				console.log(`${currentFile} DROPPED`);
 				if (val === 'down') {
 					break;
@@ -114,13 +123,11 @@ process.argv.forEach(async (val, index) => {
 			}
 		}
 
-		promises.forEach(async (promise) => {
-			await promise.then(() => {
-				i++;
-				if (i === promises.length) {
-					process.exit();
-				}
-			});
-		});
+		let proms = promises[0];
+		for (let i = 0; i < promises.length; i++) {
+			proms = proms.then(promises[i]);
+		}
+
+		setTimeout(() => process.exit(), 2000);
 	}
 });

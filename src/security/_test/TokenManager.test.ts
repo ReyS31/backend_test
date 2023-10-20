@@ -1,8 +1,8 @@
 import Jwt from 'jsonwebtoken';
 import TokenManager from '../TokenManager';
-import InvariantError from '../../error/InvariantError';
 
 import dotenv from 'dotenv';
+import AuthenticationError from '../../error/AuthenticationError';
 
 dotenv.config();
 describe('JwtTokenManager', () => {
@@ -53,7 +53,7 @@ describe('JwtTokenManager', () => {
 	});
 
 	describe('verifyRefreshToken function', () => {
-		it('should throw InvariantError when verification failed', async () => {
+		it('should throw AuthenticationError when verification failed', async () => {
 			// Arrange
 			const jwtTokenManager = new TokenManager(Jwt);
 			const accessToken = await jwtTokenManager.createAccessToken({
@@ -63,10 +63,10 @@ describe('JwtTokenManager', () => {
 			// Action & Assert
 			await expect(
 				jwtTokenManager.verifyRefreshToken(accessToken),
-			).rejects.toThrow(InvariantError);
+			).rejects.toThrow(AuthenticationError);
 		});
 
-		it('should not throw InvariantError when refresh token verified', async () => {
+		it('should not throw AuthenticationError when refresh token verified', async () => {
 			// Arrange
 			const jwtTokenManager = new TokenManager(Jwt);
 			const refreshToken = await jwtTokenManager.createRefreshToken({
@@ -76,7 +76,7 @@ describe('JwtTokenManager', () => {
 			// Action & Assert
 			await expect(
 				jwtTokenManager.verifyRefreshToken(refreshToken),
-			).resolves.not.toThrow(InvariantError);
+			).resolves.not.toThrow(AuthenticationError);
 		});
 	});
 
@@ -85,15 +85,16 @@ describe('JwtTokenManager', () => {
 			// Arrange
 			const jwtTokenManager = new TokenManager(Jwt);
 			const accessToken = await jwtTokenManager.createAccessToken({
-				username: 'test',
+				id: 1,
+				userId: 1,
 			});
 
 			// Action
-			const {username: expectedUsername}
-				= await jwtTokenManager.decodePayload(accessToken);
+			const { id, userId } = await jwtTokenManager.decodePayload(accessToken);
 
 			// Action & Assert
-			expect(expectedUsername).toEqual('test');
+			expect(id).toEqual(1);
+			expect(userId).toEqual(1);
 		});
 	});
 });

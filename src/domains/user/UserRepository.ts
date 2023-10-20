@@ -39,7 +39,7 @@ export default class UserRepository {
 
 	public async createUser(data: Register, date: string): Promise<number> {
 		try {
-			let [row] = await this.pool.query(
+			const [row] = await this.pool.query(
 				`
 				INSERT INTO users
 				(first_name, last_name, date_of_birth, street_address, city, province, telephone, email, username, password, registered_at)
@@ -60,19 +60,10 @@ export default class UserRepository {
 					date,
 				],
 			);
-			row = row as ResultSetHeader;
 
-			if (!row.insertId) {
-				throw new InvariantError('cant register user');
-			}
-
-			return row.insertId;
+			return (row as ResultSetHeader).insertId;
 		} catch (error) {
-			if (error instanceof Error && error.message.includes('username')) {
-				throw new InvariantError('username is not available');
-			}
-
-			throw error;
+			throw new InvariantError('username is not available');
 		}
 	}
 

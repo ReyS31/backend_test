@@ -9,17 +9,19 @@ import AuthenticationError from '../../../error/AuthenticationError';
 
 describe('UserRepository', () => {
 	let userRepository: UserRepository;
-	beforeAll(() => {
+
+	beforeAll(async () => {
+		await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+		await UserTableHelpers.clearTable();
 		userRepository = new UserRepository(pool);
 	});
 
 	afterEach(async () => {
-		await pool.query('SET FOREIGN_KEY_CHECKS = 0');
 		await UserTableHelpers.clearTable();
-		await pool.query('SET FOREIGN_KEY_CHECKS = 1');
 	});
 
 	afterAll(async () => {
+		await pool.query('SET FOREIGN_KEY_CHECKS = 1');
 		await pool.end();
 	});
 

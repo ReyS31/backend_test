@@ -1,4 +1,5 @@
-import InvariantError from '../error/InvariantError';
+import AuthenticationError from '../error/AuthenticationError';
+import {type AuthCredential} from '../services/auth/AuthTypes';
 
 /* eslint-disable @typescript-eslint/ban-types */
 export default class TokenManager {
@@ -19,11 +20,11 @@ export default class TokenManager {
 		try {
 			this._jwt.verify(token, process.env.REFRESH_TOKEN_KEY);
 		} catch (error) {
-			throw new InvariantError('invalid refresh token');
+			throw new AuthenticationError('invalid refresh token');
 		}
 	}
 
-	async decodePayload(token: string): Promise<Record<string, unknown>> {
-		return this._jwt.decode(token) as Record<string, unknown>;
+	async decodePayload(token: string): Promise<AuthCredential> {
+		return this._jwt.decode(token) as AuthCredential;
 	}
 }

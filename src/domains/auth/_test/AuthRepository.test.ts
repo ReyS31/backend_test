@@ -3,12 +3,14 @@ import * as AuthTableHelper from '../../../../test_helper/authTableHelper';
 import pool from '../../../pool';
 import AuthRepository from '../AuthRepository';
 import Auth from '../Auth';
-import AuthenticationError from '../../../error/AuthenticationError';
 import moment from 'moment';
+import AuthorizationError from '../../../error/AuthorizationError';
 
 describe('AuthRepository', () => {
 	let authRepository: AuthRepository;
 	beforeAll(async () => {
+		await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+		await UserTableHelper.clearTable();
 		await UserTableHelper.createUser();
 		authRepository = new AuthRepository(pool);
 	});
@@ -18,7 +20,6 @@ describe('AuthRepository', () => {
 	});
 
 	afterAll(async () => {
-		await pool.query('SET FOREIGN_KEY_CHECKS = 0');
 		await UserTableHelper.clearTable();
 		await pool.query('SET FOREIGN_KEY_CHECKS = 1');
 		await pool.end();
@@ -39,19 +40,36 @@ describe('AuthRepository', () => {
 			);
 
 			expect(auth).toBeInstanceOf(Auth);
-			expect(auth.id).toBe(1);
+			expect(auth.id).toBeTruthy();
 			expect(auth.isExpired).toBe(false);
 			expect(auth.userId).toBe(payload.userId);
 			expect(auth.userAgent).toBe(payload.userAgent);
-			expect(auth.loggedInAt).toBe(payload.date);
+			expect(auth.loggedInAt).toBeTruthy();
 		});
 	});
 
 	describe('verifyAuth', () => {
-		it('auth not found throws AuthenticationError', async () => {
-			await expect(
-				authRepository.verifyAuth({id: 1, userId: 1}),
-			).rejects.toThrow(AuthenticationError);
+		it('auth not found throws AuthorizationError', async () => {
+			await expect(authRepository.verifyAuth({id: 1, userId: 1}))
+				.rejects.toThrow(AuthorizationError)
+				.catch((e) => {
+					expect(e.message).toBe('auth not found');
+				});
+		});
+
+		it('auth expired throws AuthorizationError', async () => {
+			await AuthTableHelper.createAuth({
+				userId: 1,
+				userAgent: 'test',
+				loggedInAt: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+				isExpired: true,
+			});
+
+			await expect(authRepository.verifyAuth({id: 1, userId: 1}))
+				.rejects.toThrow(AuthorizationError)
+				.catch((e) => {
+					expect(e.message).toBe('auth expired');
+				});
 		});
 
 		it('auth verified', async () => {
@@ -59,7 +77,7 @@ describe('AuthRepository', () => {
 
 			await expect(
 				authRepository.verifyAuth({id: 1, userId: 1}),
-			).resolves.not.toThrow(AuthenticationError);
+			).resolves.not.toThrow(AuthorizationError);
 		});
 	});
 

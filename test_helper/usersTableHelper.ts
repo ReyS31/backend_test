@@ -3,6 +3,7 @@ import {type RowDataPacket} from 'mysql2';
 import pool from '../src/pool';
 import User from '../src/domains/user/User';
 import {type Register} from '../src/services/auth/AuthTypes';
+import moment from 'moment';
 
 export async function createUser(
 	user: Register = {
@@ -36,7 +37,7 @@ export async function createUser(
 			user.email,
 			user.username,
 			user.password,
-			new Date().toISOString(),
+			moment().utc().format('YYYY-MM-DD HH:mm:ss'),
 		],
 	);
 }

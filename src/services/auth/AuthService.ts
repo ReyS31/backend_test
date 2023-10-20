@@ -26,12 +26,12 @@ export default class AuthService {
 
 		const accessToken = await this.tokenManager.createAccessToken({
 			id: auth.id,
-			user: auth.userId,
+			userId: auth.userId,
 		});
 
 		const refreshToken = await this.tokenManager.createRefreshToken({
 			id: auth.id,
-			user: auth.userId,
+			userId: auth.userId,
 		});
 
 		return {
@@ -58,15 +58,16 @@ export default class AuthService {
 		await this.authRepository.expiresAllAuth(userId);
 		const auth = await this.authRepository.login(userId, userAgent, date);
 
-		const accessToken = await this.tokenManager.createAccessToken({
-			id: auth.id,
-			user: auth.userId,
-		});
-
-		const refreshToken = await this.tokenManager.createRefreshToken({
-			id: auth.id,
-			user: auth.userId,
-		});
+		const [accessToken, refreshToken] = await Promise.all([
+			this.tokenManager.createAccessToken({
+				id: auth.id,
+				userId: auth.userId,
+			}),
+			this.tokenManager.createRefreshToken({
+				id: auth.id,
+				userId: auth.userId,
+			}),
+		]);
 
 		return {
 			user,

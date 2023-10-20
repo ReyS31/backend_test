@@ -3,5 +3,10 @@ module.exports = {
 	transform: {
 		'^.+\\.ts?$': 'ts-jest',
 	},
-	collectCoverageFrom: ['src/**/*.ts', '!**/node_modules/**', '!**/vendor/**'],
+	collectCoverageFrom: [
+		'src/**/*.ts',
+		'!src/types/**/*.ts',
+		'!**/node_modules/**',
+		'!**/vendor/**',
+	],
 };

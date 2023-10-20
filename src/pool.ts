@@ -1,5 +1,4 @@
-/* istanbul ignore next */
-// Get the client
+/* istanbul ignore file */
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();

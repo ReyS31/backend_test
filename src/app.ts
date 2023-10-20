@@ -6,8 +6,6 @@ import express, {
 	type Response,
 } from 'express';
 import dotenv from 'dotenv';
-import {ZodError} from 'zod';
-import ClientError from './error/ClientError';
 import pool from './pool';
 
 // Misc
@@ -22,6 +20,8 @@ import AuthRepository from './domains/auth/AuthRepository';
 
 // Middleware
 import getUserAgent from './middleware/userAgent';
+import auth from './middleware/auth';
+import errorHandler from './middleware/errorHandler';
 
 // Service
 import AuthService from './services/auth/AuthService';
@@ -31,9 +31,9 @@ import AuthController from './services/auth/AuthController';
 
 dotenv.config();
 
-async function start(): Promise<void> {
+export async function createServer(): Promise<Express> {
 	// Misc
-	const passwordHash = new PasswordHash(bcrypt, 13);
+	const passwordHash = new PasswordHash(bcrypt, 8);
 	const tokenManager = new TokenManager(Jwt);
 
 	// Repository
@@ -48,22 +48,36 @@ async function start(): Promise<void> {
 		authRepository,
 	);
 
+	// Middleware
+	const authMiddleware = auth(tokenManager, authRepository);
+
 	// Controller
 	const authController = new AuthController(authService);
 
 	// Express
 	const app: Express = express();
-	const port = process.env.PORT;
 
 	// Middleware
 	app.use(express.json());
 	app.use(getUserAgent);
 
 	// App
-	app.use('/auth', authController.route());
+
+	/* #region Auth */
+	app.post(
+		'/auth/register',
+		async (req: Request, res: Response, next: NextFunction) =>
+			authController.register(req, res, next),
+	);
+	app.post(
+		'/auth/login',
+		async (req: Request, res: Response, next: NextFunction) =>
+			authController.login(req, res, next),
+	);
+	/* #endregion */
 
 	// HealthCheck
-	app.get('/', (req: Request, res: Response) => {
+	app.get('/', [authMiddleware], async (req: Request, res: Response) => {
 		res.send({
 			status: 'success',
 			message: 'OK',
@@ -71,39 +85,14 @@ async function start(): Promise<void> {
 	});
 
 	// Error handling
-	app.use((err: Error, req: Request, res: Response, _: NextFunction): void => {
-		if (err instanceof ZodError) {
-			const errors = JSON.parse(err.message) as Record<string, unknown>;
-			res.status(400).send({
-				status: 'fail',
-				message: 'BAD REQUEST',
-				errors,
-			});
+	app.use(errorHandler);
 
-			return;
-		}
-
-		if (err instanceof ClientError) {
-			res.status(err.statusCode).send({
-				status: 'fail',
-				message: err.message,
-			});
-
-			return;
-		}
-
-		res
-			.send({
-				status: 'fail',
-				message: err.message,
-			})
-			.status(500);
-	});
-
-	app.listen(port, () => {
-		console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-	});
+	return app;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-start();
+const port = process.env.PORT;
+void createServer().then((app) =>
+	app.listen(port, () => {
+		console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+	}),
+);

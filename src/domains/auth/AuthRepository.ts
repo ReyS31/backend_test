@@ -5,8 +5,8 @@ import {
 	type RowDataPacket,
 } from 'mysql2/promise';
 import Auth from './Auth';
-import AuthenticationError from '../../error/AuthenticationError';
 import moment from 'moment';
+import AuthorizationError from '../../error/AuthorizationError';
 
 export default class AuthRepository {
 	constructor(private readonly pool: Pool) {}
@@ -37,11 +37,11 @@ export default class AuthRepository {
 		res = res as RowDataPacket[];
 
 		if (!res.length) {
-			throw new AuthenticationError('auth not found');
+			throw new AuthorizationError('auth not found');
 		}
 
-		if ((res[0].is_expired_at as number) === 1) {
-			throw new AuthenticationError('auth expired');
+		if ((res[0].is_expired as number) === 1) {
+			throw new AuthorizationError('auth expired');
 		}
 	}
 
