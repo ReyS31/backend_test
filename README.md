@@ -10,7 +10,7 @@
 #### For postman use
 - Import collection and environment from `misc`
 - Explore the endpoints
-
+- [API documentations](https://documenter.getpostman.com/view/8272746/2s9YRB3CJT)
 ### Auth Flowchart
 ![Auth Flowchart](./misc/flowchart_auth.jpg)
 
