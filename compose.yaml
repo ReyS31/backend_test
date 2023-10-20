@@ -8,23 +8,31 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-#   server:
-#     build:
-#       context: .
-#     environment:
-#       NODE_ENV: production
-#     ports:
-#       - 8000:8000
+  migrator:
+    image: rey/starworks:latest
+    environment:
+      NODE_ENV: production
+    env_file:
+      - .env
+    command: ['npm', 'run', 'migrate:up']
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - tools
 
-# The commented out section below is an example of how to define a PostgreSQL
-# database that your application can use. `depends_on` tells Docker Compose to
-# start the database before your application. The `db-data` volume persists the
-# database data between container restarts. The `db-password` secret is used
-# to set the database password. You must create `db/password.txt` and add
-# a password of your choosing to it before running `docker-compose up`.
-#     depends_on:
-#       db:
-#         condition: service_healthy
+  server:
+    image: rey/starworks:latest
+    environment:
+      NODE_ENV: production
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: mariadb
     volumes:
@@ -32,6 +40,7 @@ services:
     environment:
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-    ports:
-      - 3306:3306
-
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 5s
+      retries: 10

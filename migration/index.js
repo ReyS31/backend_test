@@ -128,6 +128,9 @@ process.argv.forEach(async (val, index) => {
 			proms = proms.then(promises[i]);
 		}
 
-		setTimeout(() => process.exit(), 2000);
+		setTimeout(async () => {
+			await pool.end();
+			process.exit();
+		}, 2000);
 	}
 });

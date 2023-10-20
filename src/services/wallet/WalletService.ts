@@ -76,6 +76,11 @@ export default class WalletService {
 
 		const date = moment().utc();
 		const wallet = await this.walletRepository.getBalance(userId);
+
+		if(amount > wallet.balance){
+			throw new InvariantError('not enough balance');
+		}
+
 		await this.passwordHash.comparePassword(pin, wallet.pin);
 		const latestBalance = await this.transactionRepository.createTransaction({
 			walletId: wallet.id,
