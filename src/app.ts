@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 import express, {
 	type NextFunction,
 	type Express,
@@ -5,57 +6,126 @@ import express, {
 	type Response,
 } from 'express';
 import dotenv from 'dotenv';
-import { ZodError } from 'zod';
-import ClientError from './error/ClientError';
+import pool from './pool';
+
+// Misc
+import bcrypt from 'bcrypt';
+import PasswordHash from './security/PasswordHash';
+import Jwt from 'jsonwebtoken';
+import TokenManager from './security/TokenManager';
+
+// Repository
+import UserRepository from './domains/user/UserRepository';
+import AuthRepository from './domains/auth/AuthRepository';
+import WalletRepository from './domains/wallet/WalletRepository';
+import TransactionRepository from './domains/transaction/TransactionRepository';
+
+// Middleware
 import getUserAgent from './middleware/userAgent';
+import auth from './middleware/auth';
+import errorHandler from './middleware/errorHandler';
+
+// Service
+import AuthService from './services/auth/AuthService';
+import WalletService from './services/wallet/WalletService';
+
+// Controller
+import AuthController from './services/auth/AuthController';
+import WalletController from './services/wallet/WalletController';
 
 dotenv.config();
 
-async function start(): Promise<void> {
-	const app: Express = express();
-	const port = process.env.PORT;
+export async function createServer(): Promise<Express> {
+	// Misc
+	const passwordHash = new PasswordHash(bcrypt, 8);
+	const tokenManager = new TokenManager(Jwt);
 
+	// Repository
+	const userRepository = new UserRepository(pool);
+	const authRepository = new AuthRepository(pool);
+	const walletRepository = new WalletRepository(pool);
+	const transactionRepository = new TransactionRepository(pool);
+
+	// Services
+	const authService = new AuthService(
+		passwordHash,
+		tokenManager,
+		userRepository,
+		authRepository,
+	);
+	const walletService = new WalletService(
+		walletRepository,
+		transactionRepository,
+		passwordHash,
+	);
+
+	// Middleware
+	const authMiddleware = auth(tokenManager, authRepository);
+
+	// Controller
+	const authController = new AuthController(authService, walletService);
+	const walletController = new WalletController(walletService);
+
+	// Express
+	const app: Express = express();
+
+	// Middleware
 	app.use(express.json());
 	app.use(getUserAgent);
-	app.get('/', (req: Request, res: Response) => {
+
+	// App
+	/* #region Auth */
+	app.post(
+		'/auth/register',
+		async (req: Request, res: Response, next: NextFunction) =>
+			authController.register(req, res, next),
+	);
+	app.post(
+		'/auth/login',
+		async (req: Request, res: Response, next: NextFunction) =>
+			authController.login(req, res, next),
+	);
+	/* #endregion */
+
+	/* #region Wallet */
+	app.use('/wallet', authMiddleware);
+	app.get('/wallet', async (req: Request, res: Response, next: NextFunction) =>
+		walletController.checkBalance(req, res, next),
+	);
+	app.post(
+		'/wallet/topup',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.topup(req, res, next),
+	);
+	app.post(
+		'/wallet/pay',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.pay(req, res, next),
+	);
+	app.post(
+		'/wallet/change-pin',
+		async (req: Request, res: Response, next: NextFunction) =>
+			walletController.changePin(req, res, next),
+	);
+	/* #endregion */
+
+	// HealthCheck
+	app.get('/', async (req: Request, res: Response) => {
 		res.send({
 			status: 'success',
 			message: 'OK',
 		});
 	});
-	app.use((err: Error, req: Request, res: Response, _: NextFunction): void => {
-		if (err instanceof ZodError) {
-			const errors = JSON.parse(err.message) as Record<string, unknown>;
-			res.status(400).send({
-				status: 'fail',
-				message: 'BAD REQUEST',
-				errors,
-			});
 
-			return;
-		}
+	// Error handling
+	app.use(errorHandler);
 
-		if (err instanceof ClientError) {
-			res.status(err.statusCode).send({
-				status: 'fail',
-				message: err.message,
-			});
-
-			return;
-		}
-
-		res
-			.send({
-				status: 'fail',
-				message: err.message,
-			})
-			.status(500);
-	});
-
-	app.listen(port, () => {
-		console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-	});
+	return app;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-start();
+const port = process.env.PORT;
+void createServer().then((app) =>
+	app.listen(port, () => {
+		console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+	}),
+);
