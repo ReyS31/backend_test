@@ -19,7 +19,7 @@ class WalletController {
 
 			return response.status(202).send({
 				status: 'success',
-				...data,
+				data,
 			});
 		} catch (error) {
 			next(error);
@@ -39,7 +39,7 @@ class WalletController {
 
 			return response.status(202).send({
 				status: 'success',
-				...data,
+				data,
 			});
 		} catch (error) {
 			next(error);
@@ -58,7 +58,7 @@ class WalletController {
 
 			return response.status(200).send({
 				status: 'success',
-				...data,
+				data,
 			});
 		} catch (error) {
 			next(error);
