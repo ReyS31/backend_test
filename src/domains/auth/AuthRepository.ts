@@ -28,6 +28,17 @@ export default class AuthRepository {
 		});
 	}
 
+	async loginError(
+		userId: number,
+		userAgent: string,
+		date: string,
+	): Promise<void> {
+		await this.pool.query(
+			'INSERT INTO auth(user_id, user_agent, is_success, logged_in_at) VALUES(?, ?, ?, ?)',
+			[userId, userAgent, 0, date],
+		);
+	}
+
 	async verifyAuth(data: {id: number; userId: number}): Promise<void> {
 		let [res] = await this.pool.query(
 			'SELECT is_expired FROM auth WHERE id = ? and user_id = ?',

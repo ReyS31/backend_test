@@ -54,32 +54,37 @@ export default class AuthService implements AuthServiceT {
 	): Promise<AuthResponse> {
 		const date = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 		const userIdPass = await this.userRepository.getPassword(login.credential);
-		await this.passwordHash.comparePassword(
-			login.password,
-			userIdPass.password as string,
-		);
 		const userId = userIdPass.id as number;
-		const user = await this.userRepository.getUser(userId);
-		await this.authRepository.expiresAllAuth(userId);
-		const auth = await this.authRepository.login(userId, userAgent, date);
+		try {
+			await this.passwordHash.comparePassword(
+				login.password,
+				userIdPass.password as string,
+			);
+			const user = await this.userRepository.getUser(userId);
+			await this.authRepository.expiresAllAuth(userId);
+			const auth = await this.authRepository.login(userId, userAgent, date);
 
-		const [accessToken, refreshToken] = await Promise.all([
-			this.tokenManager.createAccessToken({
-				id: auth.id,
-				userId: auth.userId,
-			}),
-			this.tokenManager.createRefreshToken({
-				id: auth.id,
-				userId: auth.userId,
-			}),
-		]);
+			const [accessToken, refreshToken] = await Promise.all([
+				this.tokenManager.createAccessToken({
+					id: auth.id,
+					userId: auth.userId,
+				}),
+				this.tokenManager.createRefreshToken({
+					id: auth.id,
+					userId: auth.userId,
+				}),
+			]);
 
-		return {
-			user,
-			token: {
-				accessToken,
-				refreshToken,
-			},
-		};
+			return {
+				user,
+				token: {
+					accessToken,
+					refreshToken,
+				},
+			};
+		} catch (error) {
+			await this.authRepository.loginError(userId, userAgent, date);
+			throw error;
+		}
 	}
 }
