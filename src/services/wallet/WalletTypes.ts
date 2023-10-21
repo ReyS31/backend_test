@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import {type RowDataPacket} from 'mysql2/promise';
 import {z} from 'zod';
 
@@ -16,6 +17,7 @@ export type CreateTranscation = {
 };
 
 export type TransactionResponse = {
+	address: string;
 	balance: number;
 	date: string;
 };

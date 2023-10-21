@@ -1,12 +1,12 @@
 import {type NextFunction, type Request, type Response} from 'express';
-import type AuthService from './AuthService';
 import {verifyRegisterPayload, verifyLoginPayload} from './AuthTypes';
-import type WalletService from '../wallet/WalletService';
+import {type AuthServiceT} from './AuthService';
+import {type WalletServiceT} from '../wallet/WalletService';
 
 class AuthController {
 	constructor(
-		private readonly registerService: AuthService,
-		private readonly walletService: WalletService,
+		private readonly authService: AuthServiceT,
+		private readonly walletService: WalletServiceT,
 	) {}
 
 	public async register(
@@ -16,8 +16,7 @@ class AuthController {
 	) {
 		try {
 			const payload = verifyRegisterPayload(request.body);
-
-			const data = await this.registerService.registerUser(
+			const data = await this.authService.registerUser(
 				payload,
 				request.userAgent ?? 'unknown browser',
 			);
@@ -36,7 +35,7 @@ class AuthController {
 		try {
 			const payload = verifyLoginPayload(request.body);
 
-			const data = await this.registerService.loginUser(
+			const data = await this.authService.loginUser(
 				payload,
 				request.userAgent ?? 'unknown browser',
 			);

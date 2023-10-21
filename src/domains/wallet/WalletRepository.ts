@@ -27,24 +27,17 @@ export default class WalletRepository {
 	}
 
 	public async createWallet(data: CreateWallet): Promise<string> {
-		try {
-			const [row] = await this.pool.query(
-				`
+		await this.pool.query(
+			`
 				INSERT INTO wallets
 				(id, user_id, pin)
 				VALUES
 				(?, ?, ?)
 			`,
-				[data.id, data.userId, data.pin],
-			);
-			if (!(row as ResultSetHeader).affectedRows) {
-				throw Error('fails to create wallet');
-			}
+			[data.id, data.userId, data.pin],
+		);
 
-			return data.id;
-		} catch (error) {
-			throw new InvariantError((error as Error).message);
-		}
+		return data.id;
 	}
 
 	public async updateBalance(
@@ -64,10 +57,10 @@ export default class WalletRepository {
 	}
 
 	public async updatePin(id: string, newPin: string): Promise<void> {
-		let [res] = await this.pool.query(
-			'UPDATE wallets SET pin = ? WHERE id = ?',
-			[newPin, id],
-		);
+		let [res] = await this.pool.query('UPDATE wallets SET pin = ? WHERE id = ?', [
+			newPin,
+			id,
+		]);
 
 		res = res as ResultSetHeader;
 

@@ -21,3 +21,6 @@
 
 ### Database
 ![Database Diagram](./misc/database.png)
+
+### Test Results
+![Test Results](./misc/test_result.png)

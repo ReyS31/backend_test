@@ -5,7 +5,12 @@ import type PasswordHash from '../../security/PasswordHash';
 import type TokenManager from '../../security/TokenManager';
 import {type Register, type AuthResponse, type Login} from './AuthTypes';
 
-export default class AuthService {
+export type AuthServiceT = {
+	registerUser(register: Register, userAgent: string): Promise<AuthResponse>;
+	loginUser(login: Login, userAgent: string): Promise<AuthResponse>;
+};
+
+export default class AuthService implements AuthServiceT {
 	constructor(
 		private readonly passwordHash: PasswordHash,
 		private readonly tokenManager: TokenManager,

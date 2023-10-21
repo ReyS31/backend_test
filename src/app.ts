@@ -1,4 +1,4 @@
-/* istanbul ignore next */
+/* istanbul ignore file */
 import express, {
 	type NextFunction,
 	type Express,

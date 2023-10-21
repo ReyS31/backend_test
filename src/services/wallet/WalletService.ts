@@ -7,7 +7,15 @@ import type PasswordHash from '../../security/PasswordHash';
 import InvariantError from '../../error/InvariantError';
 import {type TransactionResponse} from './WalletTypes';
 
-export default class WalletService {
+export type WalletServiceT = {
+	createWallet(user: User): Promise<void>;
+	changeWalletPin(userId: number, pin: string, newPin: string): Promise<void>;
+	topUp(userId: number, amount: number): Promise<TransactionResponse>;
+	pay(userId: number, amount: number, pin: string): Promise<TransactionResponse>;
+	checkBalance(userId: number): Promise<TransactionResponse>;
+};
+
+export default class WalletService implements WalletServiceT {
 	constructor(
 		private readonly walletRepository: WalletRepository,
 		private readonly transactionRepository: TransactionRepository,
@@ -43,10 +51,6 @@ export default class WalletService {
 		userId: number,
 		amount: number,
 	): Promise<TransactionResponse> {
-		if (amount < 0) {
-			throw new InvariantError('invalid amount');
-		}
-
 		const date = moment().utc();
 		const wallet = await this.walletRepository.getBalance(userId);
 		const latestBalance = await this.transactionRepository.createTransaction({
@@ -60,6 +64,7 @@ export default class WalletService {
 		const walletAfter = await this.walletRepository.getBalance(userId);
 
 		return {
+			address: wallet.id,
 			balance: walletAfter.balance,
 			date: date.toISOString(),
 		};
@@ -70,14 +75,10 @@ export default class WalletService {
 		amount: number,
 		pin: string,
 	): Promise<TransactionResponse> {
-		if (amount < 0) {
-			throw new InvariantError('invalid amount');
-		}
-
 		const date = moment().utc();
 		const wallet = await this.walletRepository.getBalance(userId);
 
-		if(amount > wallet.balance){
+		if (amount > wallet.balance) {
 			throw new InvariantError('not enough balance');
 		}
 
@@ -93,6 +94,7 @@ export default class WalletService {
 		const walletAfter = await this.walletRepository.getBalance(userId);
 
 		return {
+			address: wallet.id,
 			balance: walletAfter.balance,
 			date: date.toISOString(),
 		};
@@ -102,6 +104,7 @@ export default class WalletService {
 		const date = moment().utc();
 		const wallet = await this.walletRepository.getBalance(userId);
 		return {
+			address: wallet.id,
 			balance: wallet.balance,
 			date: date.toISOString(),
 		};
