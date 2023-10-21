@@ -1,4 +1,4 @@
-/* istanbul ignore next */
+/* istanbul ignore file */
 import {type RowDataPacket} from 'mysql2';
 import pool from '../src/pool';
 import User from '../src/domains/user/User';

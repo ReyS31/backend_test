@@ -5,9 +5,10 @@ import {
 	verifyPayPayload,
 	verifyTopupPayload,
 } from './WalletTypes';
+import {type WalletServiceT} from '../wallet/WalletService';
 
 class WalletController {
-	constructor(private readonly walletService: WalletService) {}
+	constructor(private readonly walletService: WalletServiceT) {}
 
 	public async topup(request: Request, response: Response, next: NextFunction) {
 		try {

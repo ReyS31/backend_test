@@ -1,9 +1,8 @@
-/* istanbul ignore next */
+/* istanbul ignore file */
 import {type RowDataPacket} from 'mysql2';
 import pool from '../src/pool';
 import Auth from '../src/domains/auth/Auth';
 import moment from 'moment';
-import {unknown} from 'zod';
 
 export async function createAuth(
 	auth = {
