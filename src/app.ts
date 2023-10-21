@@ -5,6 +5,7 @@ import express, {
 	type Request,
 	type Response,
 } from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './pool';
 
@@ -70,6 +71,7 @@ export async function createServer(): Promise<Express> {
 	const app: Express = express();
 
 	// Middleware
+	app.use(cors());
 	app.use(express.json());
 	app.use(getUserAgent);
 
