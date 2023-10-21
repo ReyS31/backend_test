@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS `auth` (
     `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id` BIGINT(20) UNSIGNED NOT NULL,
     `user_agent` VARCHAR(255) NOT NULL,
+    `is_success` TINYINT(1) NOT NULL DEFAULT '1',
     `logged_in_at` TIMESTAMP NOT NULL,
     `is_expired` TINYINT(1) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`) USING BTREE,
