@@ -1,6 +1,5 @@
-# Starworks Backend Test
+# Backend Test
 ---
-###### API deployed at [starworks.reytama.com](https://starworks.reytama.com) using Nginx and Cloudflare with ECS from AlibabaCloud
 
 #### How to start the server:
 1. copy/rename .env.example to .env
